@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load i18n static %}
+{% load i18n %}
 
 {% block extrahead %}
     <link type="text/css" rel="stylesheet"
@@ -13,20 +14,26 @@
     <div id="app-visualizer">
         <!-- Navbar -->
         <b-navbar type="dark" variant="secondary">
+            <!-- TRADUCCION -->
             <b-navbar-brand tag="h1">Decide</b-navbar-brand>
         </b-navbar>
 
         <div class="voting container">
+            <!-- TRADUCCION -->
             <h1>[[ voting.id ]] - [[ voting.name ]]</h1>
-
+            
+            <!-- TRADUCCION -->
             <h2 v-if="!voting.start_date">Votación no comenzada</h2>
+            <!-- TRADUCCION -->
             <h2 v-else-if="!voting.end_date">Votación en curso</h2>
             <div v-else>
+                <!-- TRADUCCION -->
                 <h2 class="heading">Resultados:</h2>
 
                 <table class="table table-bordered table-striped">
                     <thead>
                         <tr>
+                            <!-- TRADUCCION -->
                             <th>Opción</th>
                             <th>Puntuación</th>
                             <th>Votos</th>
@@ -34,6 +41,7 @@
                     </thead>
                     <tbody>
                         <tr v-for="opt in voting.postproc" :key="opt.number">
+                            <!-- TRADUCCION -->
                             <th>[[opt.option]]</th>
                             <td>[[opt.postproc]]</td>
                             <td class="text-muted">[[opt.votes]]</td>
