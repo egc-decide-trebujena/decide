@@ -15,7 +15,7 @@ class DashBoard_test_case(StaticLiveServerTestCase):
         self.base.setUp()
 
         options = webdriver.ChromeOptions()
-        options.headless = False
+        options.headless = True
         self.driver = webdriver.Chrome(options=options)
 
         super().setUp()
@@ -53,6 +53,19 @@ class DashBoard_test_case(StaticLiveServerTestCase):
         percentages_selector = WebDriverWait(self.driver, timeout=10).until(
             lambda d: d.find_element(by=By.ID, value="noadmin"))
         self.assertEqual(percentages_selector.text,"noadmin")
+
+    def test_vote_dashboard_user_negative(self):
+        q = Question(desc='test questcccion')
+        q.save()
+        v = Voting(name='test voting', question=q)
+        v.save()
+        v.create_pubkey()
+        v.start_date = timezone.now()
+        v.save()
+        response = self.driver.get(f'{self.live_server_url}/dashboard')
+        percentages_selector = WebDriverWait(self.driver, timeout=10).until(
+            lambda d: d.find_element(by=By.ID, value="noadmin"))
+        self.assertNotEqual(percentages_selector.text,"www")
 
 
 
