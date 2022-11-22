@@ -147,8 +147,10 @@ class SignInView(APIView):
     
     @staticmethod     
     def sing_in(request):
+        print(request)
 
-        if request.user.is_authenticated:
+        if request.user.is_authenticated and request.GET != "/": 
+            
             return redirect('hello')
 
         if request.method == 'GET':
