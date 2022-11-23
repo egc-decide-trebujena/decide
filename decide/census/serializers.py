@@ -11,3 +11,4 @@ class CensusSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Census
         fields = ('id','voting_id','voter_id','group')
+

@@ -1,0 +1,149 @@
+{% extends  "base.html" %}
+{% load i18n static %}
+
+{% block extrahead %}
+    <link type="text/css" rel="stylesheet"
+    href="https://unpkg.com/bootstrap/dist/css/bootstrap.min.css" />
+    <link type="text/css" rel="stylesheet"
+    href="https://unpkg.com/bootstrap-vue@2.23.1/dist/bootstrap-vue.css" />
+    <link type="text/css" rel="stylesheet" href="{% static "base/style.css" %}" />
+{% endblock %}
+
+
+{% block content %}
+<div id="app-census">
+    <!-- Navbar -->
+    <b-navbar toggleable="lg" type="dark" variant="dark">
+        <!-- TRADUCCION -->
+        <b-navbar-brand href="#">Decide</b-navbar-brand>
+        <b-navbar-toggle target="nav-collapse"></b-navbar-toggle>
+    </b-navbar>
+<div class="container-fluid">
+<div class="row align-middle">
+<div class="col-lg-6">
+    <div class="row justify-content-center">
+            <div class="col-md-10">
+            <!-- TRADUCCION -->
+            <h3 class="mt-5 text-center">Lista de censos</h3>
+            <input class="form-control" list="datalistOptions" id="exampleDataList" placeholder="Escribe para buscar">
+            <datalist id="datalistOptions">
+                {% for o in options %}
+                <option value="{{o}}">
+                {% endfor %}
+            </datalist>
+
+            <table class="table table-bordered table-striped mt-2">
+                <thead>
+                    <tr>
+                        <!-- TRADUCCION -->
+                        <th>Votación</th>
+                        <th>Votante</th>
+                        <th>Grupo</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for censo in censos %}
+                    <tr>
+                        <th>{{censo.voting_id}}</th>
+                        <th>{{censo.voter}}</th>
+                        <th>{{censo.group}}<b-icon icon="x-square" class="ms-3" variant="danger"></b-icon></th>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            </div>
+            </div>
+</div>
+
+<div class="col-lg-6 text-center my-3 mt-5">
+    <div class="row my-3">
+        <div class="d-grid gap-2 col-11 mx-auto">
+            <b-button size="lg" block variant="outline-success" href="/census/api">
+                <div class="row">
+                    <div class="col-2"><b-icon icon="three-dots" animation="cylon"></b-icon></div>
+                    <!-- TRADUCCION -->
+                    <div class="col-10 text-start">Crear Censo</div>
+                </div>
+            </b-button>
+        </div>
+    </div>
+    <div class="row my-4">
+        <div class="d-grid gap-2 col-11 mx-auto">
+            <b-button size="lg" block variant="outline-success" href="/voting">
+                <div class="row">
+                    <div class="col-2"><b-icon icon="three-dots" animation="cylon"></b-icon></div>
+                    <!-- TRADUCCION -->
+                    <div class="col-10 text-start">Agrupar Censos</div>
+                </div>
+            </b-button>
+        </div>
+    </div>
+    <div class="row my-4">
+        <div class="d-grid gap-2 col-11 mx-auto">
+            <b-button size="lg" block variant="outline-success" href="/census/reuse">
+                <div class="row">
+                    <div class="col-2"><b-icon icon="three-dots" animation="cylon"></b-icon></div>
+                    <!-- TRADUCCION -->
+                    <div class="col-10 text-start">Reutilizar Censos</div>
+                </div>
+            </b-button>
+        </div>
+    </div>
+    <div class="row my-4">
+        <div class="d-grid gap-2 col-5 mx-auto">
+            <b-button size="lg" block variant="outline-success" href="/census">
+                <div class="row">
+                    <div class="col-2"><b-icon icon="three-dots" animation="cylon"></b-icon></div>
+                    <!-- TRADUCCION -->
+                    <div class="col-10 text-start">Importar Csv</div>
+                </div>
+            </b-button>
+        </div>
+        <div class="d-grid gap-2 col-5 mx-auto">
+            <b-button size="lg" block variant="outline-success" href="/census">
+                <div class="row">
+                    <div class="col-2"><b-icon icon="three-dots" animation="cylon"></b-icon></div>
+                    <!-- TRADUCCION -->
+                    <div class="col-10 text-start">Importar JSON</div>
+                </div>
+            </b-button>
+        </div>
+    </div>
+    <div class="row my-4">
+        <div class="d-grid gap-2 col-5 mx-auto">
+            <b-button size="lg" block variant="outline-success" href="/census">
+                <div class="row">
+                    <div class="col-2"><b-icon icon="three-dots" animation="cylon"></b-icon></div>
+                    <!-- TRADUCCION -->
+                    <div class="col-10 text-start">Importar Excel</div>
+                </div>
+            </b-button>
+        </div>
+        <div class="d-grid gap-2 col-5 mx-auto">
+            <b-button size="lg" block variant="outline-success" href="/census">
+                <div class="row">
+                    <div class="col-2"><b-icon icon="three-dots" animation="cylon"></b-icon></div>
+                    <!-- TRADUCCION -->
+                    <div class="col-10 text-start">Exportar Excel</div>
+                </div>
+            </b-button>
+        </div>
+    </div>
+</div>
+</div>
+
+</div>
+</div>
+{% endblock %}
+
+{% block extrabody %}
+     <!-- Vuejs -->
+     <script src="https://unpkg.com/vue@2.6/dist/vue.min.js"></script>
+     <script src="https://unpkg.com/bootstrap-vue@2.23.1/dist/bootstrap-vue.min.js"></script>
+     <script src="https://unpkg.com/babel-polyfill@latest/dist/polyfill.min.js"></script>
+     <script src="https://unpkg.com/bootstrap-vue@2.23.1/dist/bootstrap-vue-icons.min.js"></script>
+     
+     <script>
+        new Vue({ el: '#app-census' });
+     </script>
+{% endblock %}

@@ -6,6 +6,9 @@ from .models import Question
 from .models import Voting
 
 from .filters import StartedFilter
+from rest_framework.authtoken.models import Token
+
+
 
 
 def start(modeladmin, request, queryset):
@@ -23,8 +26,9 @@ def stop(ModelAdmin, request, queryset):
 
 def tally(ModelAdmin, request, queryset):
     for v in queryset.filter(end_date__lt=timezone.now()):
+        token1= str(Token.objects.filter(user__username=request.user.username)[0])
         token = request.session.get('auth-token', '')
-        v.tally_votes(token)
+        v.tally_votes(token1)
 
 
 class QuestionOptionInline(admin.TabularInline):

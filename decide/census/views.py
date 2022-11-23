@@ -1,4 +1,7 @@
 from django.db.utils import IntegrityError
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.http import HttpResponseRedirect
+from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import render
 from rest_framework import generics
@@ -10,10 +13,14 @@ from rest_framework.status import (
         HTTP_401_UNAUTHORIZED as ST_401,
         HTTP_409_CONFLICT as ST_409
 )
-from rest_framework.permissions import IsAdminUser
+
+from rest_framework.permissions import IsAdminUser,IsAuthenticated
 from base.perms import UserIsStaff
 from .models import Census,CensusGroup
+from .forms import CensusReuseForm
 from .serializers import CensusGroupSerializer,CensusSerializer
+from django.shortcuts import render
+from rest_framework.decorators import api_view, permission_classes 
 
 from django.conf import settings
 import pandas as pd
@@ -233,6 +240,7 @@ def export_excel(request):
 
 
 
+
 class CensusDetail(generics.RetrieveDestroyAPIView):
     serializer_class = CensusSerializer
 
@@ -261,10 +269,61 @@ class CensusGroupCreate(generics.ListCreateAPIView):
             census_group = CensusGroup(name=name)
             census_group.save()
         except IntegrityError:
-            return Response('Error trying to create census', status=ST_409)
-        return Response('Census group created', status=ST_201)
-  
-class CensusGroupDetail(generics.RetrieveUpdateDestroyAPIView):
+            return Response('Error try to create census', status=ST_409)
+        return Response('Census created', status=ST_201)
+
+@api_view(['GET','POST'])
+def censusReuse(request):
+    if request.method == 'POST':
+            form = CensusReuseForm(request.POST)
+            print(form)
+            if form.is_valid():
+                cd = form.cleaned_data
+                voting_id = cd['voting_id']
+                new_voting = cd['new_voting']
+                censos = Census.objects.all().values()
+                for c in censos:
+                    if(c['voting_id'] == voting_id):
+                            try:
+                                census = Census(voting_id=new_voting, voter_id=c['voter_id'], group_id=c['group_id'])
+                                census.save()
+                            except:
+                                pass
+                return HttpResponseRedirect('/census')
+            else:
+                return Response('Error try to create census', status=ST_400)
+    else:
+        form = CensusReuseForm()
+    return render(request,'census/census_reuse_form.html',{'form':form})
+
+@api_view(['GET'])
+@permission_classes([IsAdminUser])
+def censusList(request):
+    censos = Census.objects.all().values()
+    res = []
+    options = []
+    for c in censos:
+        try:
+            votante = User.objects.get(pk=c['voter_id'])
+        except:
+            votante = "El votante todavía no ha sido añadido"
+        if(votante not in options):
+            options.append(votante)
+        censo = c['voting_id']
+        try:
+            grupo = CensusGroup.objects.get(id=c['group_id'])
+            if(grupo not in options):
+                options.append(grupo.name)
+        except:
+            ###    <!-- TRADUCCIÓN -->
+            grupo = "No tiene grupo asignado"
+            if(grupo not in options):
+                options.append(grupo)
+        res.append({'voting_id':censo,'voter':votante,'group':grupo})
+    return render(request,'census/census.html',{'censos':res, 'options':options})
+
+
+class CensusGroupDetail(generics.RetrieveDestroyAPIView):
     serializer_class = CensusGroupSerializer
     queryset = CensusGroup.objects.all()
 

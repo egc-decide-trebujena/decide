@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% load i18n static %}
+
+{% block extrahead %}
+    <link type="text/css" rel="stylesheet"
+    href="https://unpkg.com/bootstrap/dist/css/bootstrap.min.css" />
+    <link type="text/css" rel="stylesheet"
+    href="https://unpkg.com/bootstrap-vue@2.23.1/dist/bootstrap-vue.css" />
+    <link type="text/css" rel="stylesheet" href="{% static "booth/style.css" %}" />
+{% endblock %}
+
+{% block content %}
+<div id="app-census-reuse">
+    <!-- Navbar -->
+    <b-navbar toggleable="lg" type="dark" variant="dark">
+        <!-- TRADUCCION -->
+        <b-navbar-brand href="#">Decide</b-navbar-brand>
+        <b-navbar-toggle target="nav-collapse"></b-navbar-toggle>
+    </b-navbar>
+</div>
+<div class="container-fluid">
+<div class="row justify-content-center mt-5">
+    <div class="col-md-3">
+    <div class="card">
+        <article class="card-body">
+
+        <h4 class="card-title mb-4 mt-1 text-align-center text-center">Reutilizar Censo</h4>
+            <form action="/census/reuse" method="post">
+                {% csrf_token %}
+                <div class="mb-3 row">
+                    <div class="mb-3 row">
+                        <label for="voting_id" class="col-sm-5 col-form-label">Votación origen: </label>
+                        <div class="col-sm-7">
+                            <input class="form-control" id="voting_id" name="voting_id" placeholder="Id de la votación a copiar">
+                    </div>
+                    </div>
+                    <div class="mb-3 row">
+                    <label for="new_voting" class="col-sm-5 col-form-label">Votación destino: </label>
+                    <div class="col-sm-7">
+                        <input class="form-control" id="new_voting" name="new_voting" placeholder="Id de la votación deseada">
+                    </div>
+                </div>
+            <div class="form-group mt-4 text-center">
+                <button type="submit" class="btn btn-primary btn-block" value="OK"> Aceptar  </button>
+            </div> <!-- form-group// -->                                                           
+        </form>
+        </article>
+    </div>
+</div>
+
+
+</div>
+
+</div>
+
+{% endblock %}
+
+{% block extrabody %}
+    <!-- Vuejs -->
+    <script src="https://unpkg.com/vue@2.6/dist/vue.min.js"></script>
+    <script src="https://unpkg.com/bootstrap-vue@2.23.1/dist/bootstrap-vue.min.js"></script>
+    <script src="https://unpkg.com/babel-polyfill@latest/dist/polyfill.min.js"></script>
+    <script src="https://unpkg.com/bootstrap-vue@2.23.1/dist/bootstrap-vue-icons.min.js"></script>
+    
+    <script>
+        new Vue({ el: '#app-census-reuse' }); 
+    </script>
+{% endblock %}

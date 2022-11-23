@@ -26,22 +26,7 @@ tr:nth-child(even){
    </tr>
     <tr>
     <tr>
-    <td>user2022</td>
-    </tr>
-    <tr>
-    <td>felix2022</td>
-    </tr>
-    <tr>
-    <td>user2</td>
-    </tr>
-    <tr>
-    <td>roberto</td>
-    </tr>
-    <tr>
-    <td>ana2022</td>
-    </tr>
-    <tr>
-    <td>pepe</td>
+    <td>jaiborcon</td>
     </tr>
 </table>
 <h2>Porcentage del censo</h2>
@@ -55,43 +40,15 @@ tr:nth-child(even){
     <tr>
     <tr>
     <td>1</td>
-    <td>50.0%</td>
+    <td>100.0%</td>
     </tr>
     <tr>
     <td>2</td>
-    <td>133.33333333333331%</td>
+    <td>100.0%</td>
     </tr>
     <tr>
     <td>3</td>
-    <td>50.0%</td>
-    </tr>
-    <tr>
-    <td>4</td>
-    <td>66.66666666666666%</td>
-    </tr>
-    <tr>
-    <td>5</td>
-    <td>50.0%</td>
-    </tr>
-    <tr>
-    <td>6</td>
     <td>100.0%</td>
-    </tr>
-    <tr>
-    <td>7</td>
-    <td>133.33333333333331%</td>
-    </tr>
-    <tr>
-    <td>8</td>
-    <td>100.0%</td>
-    </tr>
-    <tr>
-    <td>9</td>
-    <td>100.0%</td>
-    </tr>
-    <tr>
-    <td>10</td>
-    <td>50.0%</td>
     </tr>
 </table>
 <h2>Encuestas votadas</h2>
@@ -103,16 +60,8 @@ tr:nth-child(even){
    </tr>
     <tr>
     <tr>
-    <td>ana2022</td>
-    <td>11</td>
-    </tr>
-    <tr>
-    <td>roberto</td>
-    <td>5</td>
-    </tr>
-    <tr>
-    <td>pepe</td>
-    <td>2</td>
+    <td>jaiborcon</td>
+    <td>3</td>
     </tr>
 </table>
 </body>
