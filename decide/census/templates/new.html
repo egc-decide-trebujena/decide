@@ -12,18 +12,7 @@
 {% block content %}
     <div id="app-booth">
         <!-- Navbar -->
-        <b-navbar type="dark" variant="dark" class="px-5">
-            <b-navbar-brand left tag="h1">Decide</b-navbar-brand>
-                <b-navbar-nav right class="ml-auto d-block w-100 text-right" v-if="!signup">
-                    <b-nav-item right href="#" v-on:click="decideLogout">
-                        {% trans "logout" %}
-                    </b-nav-item>
-                </b-navbar-nav>
-        </b-navbar>
-
-        <b-alert :variant="alertLvl" dismissible v-model="alertShow">
-            [[ alertMsg ]]
-        </b-alert>
+        <nav class="navbar px-5 navbar-dark bg-dark navbar-expand"><h1 left="" class="navbar-brand">Decide</h1></nav>
 
         <div class="voting">
             
@@ -53,7 +42,7 @@
                         {% endfor %}
                     </datalist>
 
-                    <button type="submit" variant="primary" class="w-100 mt-4 h4">Crear censo</button>
+                    <button type="submit" variant="primary" class="btn w-100 mt-4 h4 btn-primary">Crear censo</button>
                 </div>
             </div>
         </div>

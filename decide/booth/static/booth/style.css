@@ -1,4 +1,39 @@
+*{
+    font-family: Arial, Helvetica, sans-serif;
+}
+
 .voting {
-    margin-top: 20px;
+    margin-top: 40px;
     margin-left: 40px;
+}
+
+.text-right{
+    text-align: right !important;
+}
+
+a{
+    opacity: 1 !important;
+    text-decoration: underline !important;
+}
+
+.nav-link{
+    color: #fff;
+    text-transform: capitalize;
+}
+
+.bg-gray{
+    background-color: #f6f6f6;
+}
+
+.btn{
+    font-size: 1.2rem;
+    font-weight: 500;
+}
+
+.w-35{
+    width: 35%;
+}
+
+input[type="radio" i] {
+    margin-right: 5px;
 }
