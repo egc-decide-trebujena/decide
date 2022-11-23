@@ -10,8 +10,20 @@
 {% endblock %}
 
 {% block content %}
-    <div id="app-census">
+    <div id="app-booth">
         <!-- Navbar -->
+        <b-navbar type="dark" variant="dark" class="px-5">
+            <b-navbar-brand left tag="h1">Decide</b-navbar-brand>
+                <b-navbar-nav right class="ml-auto d-block w-100 text-right" v-if="!signup">
+                    <b-nav-item right href="#" v-on:click="decideLogout">
+                        {% trans "logout" %}
+                    </b-nav-item>
+                </b-navbar-nav>
+        </b-navbar>
+
+        <b-alert :variant="alertLvl" dismissible v-model="alertShow">
+            [[ alertMsg ]]
+        </b-alert>
 
         <div class="voting">
             
@@ -20,14 +32,14 @@
                 <div class="container bg-gray w-35 p-4 mt-4 rounded m-0">
 
                     <label for="voting_id">Elige votación</label>
-                    <select name="voting_id">
+                    <select class="form-select" name="voting_id">
                         {% for voting in voting_id %}
                             <option value="{{voting.id}}">{{voting}}</option>
                         {% endfor %}
                     </select>
                     <br>
                     <label for="voter_id">Elige votante</label>
-                    <select name="voter_id">
+                    <select class="form-select" name="voter_id">
                         {% for voter in voter_id %}
                             <option value="{{voter.id}}">{{voter}}</option>
                         {% endfor %}
@@ -41,18 +53,152 @@
                         {% endfor %}
                     </datalist>
 
-                    <button type="submit" class="btn btn-success">Subir</button>
+                    <button type="submit" variant="primary" class="w-100 mt-4 h4">Crear censo</button>
                 </div>
             </div>
         </div>
     {% endblock %}
     
     {% block extrabody %}
-        <!-- Vuejs -->
-        <script src="https://unpkg.com/vue@2.7"></script>
-        <script src="https://unpkg.com/babel-polyfill@latest/dist/polyfill.min.js"></script>
-        <script src="https://unpkg.com/bootstrap-vue@latest/dist/bootstrap-vue.js"></script>
-    
+    <!-- needed to generate big random -->
+    <script src="{% static "crypto/sjcl.js" %}"></script>
 
-    </body>
-    {% endblock %}
+    <!-- Big integer -->
+    <script src="{% static "crypto/jsbn.js" %}"></script>
+    <script src="{% static "crypto/jsbn2.js" %}"></script>
+    <script src="{% static "crypto/bigint.js" %}"></script>
+
+    <!-- ElGamal encrypt -->
+    <script src="{% static "crypto/elgamal.js" %}"></script>
+
+    <!-- Vuejs -->
+    <script src="https://unpkg.com/vue@latest"></script>
+    <script src="https://unpkg.com/babel-polyfill@latest/dist/polyfill.min.js"></script>
+    <script src="https://unpkg.com/bootstrap-vue@latest/dist/bootstrap-vue.js"></script>
+
+    <script type="application/javascript">
+        var voting = {{voting|safe}};
+        var app = new Vue({
+            delimiters: ['[[', ']]'],
+            el: '#app-booth',
+            data: {
+                keybits: {{ KEYBITS }},
+                voting: voting,
+                selected: "",
+                signup: true,
+                alertShow: false,
+                alertMsg: "",
+                alertLvl: "info",
+                token: null,
+                user: null,
+                form: {
+                    username: '',
+                    password: ''
+                },
+                bigpk: {
+                    p: BigInt.fromJSONObject(voting.pub_key.p.toString()),
+                    g: BigInt.fromJSONObject(voting.pub_key.g.toString()),
+                    y: BigInt.fromJSONObject(voting.pub_key.y.toString()),
+                }
+            },
+            beforeMount() {
+                this.init()
+                ElGamal.BITS = this.keybits;
+            },
+            methods: {
+                init() {
+                    var cookies = document.cookie.split("; ");
+                    cookies.forEach((c) => {
+                        var cs = c.split("=");
+                        if (cs[0] == 'decide' && cs[1]) {
+                            this.token = cs[1];
+                            this.getUser();
+                        }
+                    });
+                },
+                postData(url, data) {
+                    // Default options are marked with *
+                    var fdata = {
+                        body: JSON.stringify(data),
+                        headers: {
+                            'content-type': 'application/json',
+                        },
+                        method: 'POST',
+                    };
+
+                    if (this.token) {
+                        fdata.headers['Authorization'] = 'Token ' + this.token;
+                    }
+
+                    return fetch(url, fdata)
+                        .then(response => {
+                            if (response.status === 200) {
+                                return response.json();
+                            } else {
+                                return Promise.reject(response.statusText);
+                            }
+                        });
+                },
+                onSubmitLogin(evt) {
+                    evt.preventDefault();
+                    this.postData("{% url "gateway" "authentication" "/login/" %}", this.form)
+                        .then(data => {
+                            document.cookie = 'decide='+data.token+';';
+                            this.token = data.token;
+                            this.getUser();
+                        })
+                        .catch(error => {
+                            this.showAlert("danger", '{% trans "Error: " %}' + error);
+                        });
+                },
+                getUser(evt) {
+                    var data = {token: this.token};
+                    this.postData("{% url "gateway" "authentication" "/getuser/" %}", data)
+                        .then(data => {
+                            this.user = data;
+                            this.signup = false;
+                        }).catch(error => {
+                            this.showAlert("danger", '{% trans "Error: " %}' + error);
+                        });
+                },
+                decideLogout(evt) {
+                    evt.preventDefault();
+                    var data = {token: this.token};
+                    this.postData("{% url "gateway" "authentication" "/logout/" %}", data);
+                    this.token = null;
+                    this.user = null;
+                    document.cookie = 'decide=;';
+                    this.signup = true;
+                },
+                decideEncrypt() {
+                    var bigmsg = BigInt.fromJSONObject(this.selected.toString());
+                    var cipher = ElGamal.encrypt(this.bigpk, bigmsg);
+                    return cipher;
+                },
+                decideSend(evt) {
+                    evt.preventDefault();
+                    var v = this.decideEncrypt();
+                    var data = {
+                        vote: {a: v.alpha.toString(), b: v.beta.toString()},
+                        voting: this.voting.id,
+                        voter: this.user.id,
+                        token: this.token
+                    }
+                    this.postData("{% url "gateway" "store" "/" %}", data)
+                        .then(data => {
+                            this.showAlert("success", '{% trans "Conglatulations. Your vote has been sent" %}');
+                        })
+                        .catch(error => {
+                            this.showAlert("danger", '{% trans "Error: " %}' + error);
+                        });
+                },
+                showAlert(lvl, msg) {
+                    this.alertLvl = lvl;
+                    this.alertMsg = msg;
+                    this.alertShow = true;
+                }
+            },
+        })
+    </script>
+</body>
+{% endblock %}
