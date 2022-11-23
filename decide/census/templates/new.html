@@ -1,31 +1,58 @@
-<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous"> 
-{% block content %}
-<div class="shadow-lg continer">
-  <form method="post" enctype="multipart/form-data">
-    {% csrf_token %}
- 
-    <div class="row">
-        <div class="col-md-6 col-xs-12">
+{% extends "base.html" %}
+{% load i18n static %}
 
-              <h2>Crear Censo</h2>
+{% block extrahead %}
+    <link type="text/css" rel="stylesheet"
+         href="https://unpkg.com/bootstrap/dist/css/bootstrap.min.css" />
+    <link type="text/css" rel="stylesheet"
+         href="https://unpkg.com/bootstrap-vue@latest/dist/bootstrap-vue.css" />
+    <link type="text/css" rel="stylesheet" href="{% static "census/style.css" %}" />
+{% endblock %}
+
+{% block content %}
+    <div id="app-census">
+        <!-- Navbar -->
+
+        <div class="voting">
+            
+                <h1>Crear Censo</h1>
                
+                <div class="container bg-gray w-35 p-4 mt-4 rounded m-0">
+
+                    <label for="voting_id">Elige votación</label>
                     <select name="voting_id">
                         {% for voting in voting_id %}
-                            <option value="{{voting.id}}">{{voting.id}}</option>
+                            <option value="{{voting.id}}">{{voting}}</option>
                         {% endfor %}
                     </select>
-
+                    <br>
+                    <label for="voter_id">Elige votante</label>
                     <select name="voter_id">
                         {% for voter in voter_id %}
-                            <option value="{{voter.id}}">{{voter.id}}</option>
+                            <option value="{{voter.id}}">{{voter}}</option>
                         {% endfor %}
                     </select>
+                    <br>
+                    <label for="voting_id">Elige grupo</label>
+                    <input class="form-control" list="datalistOptions" id="exampleDataList" placeholder="Escribe para buscar">
+                    <datalist id="datalistOptions">
+                        {% for o in group_id %}
+                            <option value="{{o}}">
+                        {% endfor %}
+                    </datalist>
 
                     <button type="submit" class="btn btn-success">Subir</button>
-
-                    </div>
                 </div>
-  </form>
-  </div>
+            </div>
+        </div>
+    {% endblock %}
     
-{% endblock %}
+    {% block extrabody %}
+        <!-- Vuejs -->
+        <script src="https://unpkg.com/vue@2.7"></script>
+        <script src="https://unpkg.com/babel-polyfill@latest/dist/polyfill.min.js"></script>
+        <script src="https://unpkg.com/bootstrap-vue@latest/dist/bootstrap-vue.js"></script>
+    
+
+    </body>
+    {% endblock %}
