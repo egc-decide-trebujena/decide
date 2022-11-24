@@ -4,6 +4,7 @@ ENV CRYPTOGRAPHY_DONT_BUILD_RUST=1
 
 RUN apk add --no-cache git postgresql-dev gcc libc-dev
 RUN apk add --no-cache gcc g++ make libffi-dev python3-dev build-base
+RUN apk add py3-pip py3-pillow py3-cffi py3-brotli gcc musl-dev python3-dev pango
 
 RUN pip install gunicorn
 RUN pip install ipdb
@@ -12,7 +13,7 @@ RUN pip install ipython
 WORKDIR /app
 
 RUN git clone https://github.com/egc-decide-trebujena/decide.git .
-RUN git checkout milestone/M2
+RUN git pull origin milestone/M2
 RUN echo "$(<requirements.txt)"s
 RUN pip install -U pip
 RUN pip install -r requirements.txt
