@@ -1,0 +1,39 @@
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous"> 
+{% block content %}
+
+{% if messages %}
+    {% for message in messages %}
+    <div {% if message.tags == 'error' %} class="alert alert-danger" {% elif message.tags == 'success' %} class="alert alert-success"{% endif %}  role="alert">
+      {{ message }}</div>
+    {% endfor %}
+{% endif %}
+
+<div class="shadow-lg continer">
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+ 
+    <div class="container">
+      <div class="x_title col-12 mt-3 ml-2 mb-4">
+        <h1>Importación Fichero CSV</h1>
+      </div>
+      <div class="col-12">
+        <p>Introduzca un fichero con el formato .csv para importarlo: </p>
+      </div>
+      
+      <div class="row">
+ 
+        <div class="col-md-8 form-group">
+
+          <input type="file" class="form-control" id="customFile" name="myfile" />  
+        </div>
+               
+        <div class="col-4">
+          <button type="submit" class="btn btn-success" >Subir</button>   
+        </div>                         
+      </div>
+    </div>
+
+  </form>
+</div>
+    
+{% endblock %}

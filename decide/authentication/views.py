@@ -134,6 +134,7 @@ class SignUpView(APIView):
                     })
             else:
                 user = form.save()
+                Token.objects.create(user=user)
                 login(request, user)
                 return redirect("hello")
             
@@ -166,6 +167,7 @@ class SignInView(APIView):
                     'error': 'Username or password is incorrect'
                 })
             else:
+                Token.objects.update_or_create(user=user)
                 login(request, user)
                 return redirect('hello')
 

@@ -8,6 +8,7 @@ from base.models import Auth, Key
 from postproc.admin import *
 
 
+
 QUESTION_TYPES = (
     ('normal','Votación normal'),
     ('borda', 'Votación con recuento borda'),

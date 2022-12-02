@@ -81,7 +81,7 @@ class DashboardView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         percentages=list(Percentages.objects.all().values())
-        context['porcentages'] = json.dumps(percentages)
+        context['percentages'] = json.dumps(percentages)
         User = get_user_model()
         users = User.objects.values()
         us = list(users.all())

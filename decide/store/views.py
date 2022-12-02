@@ -14,6 +14,7 @@ from base import mods
 from base.perms import UserIsStaff
 
 
+
 class StoreView(generics.ListAPIView):
     queryset = Vote.objects.all()
     serializer_class = VoteSerializer

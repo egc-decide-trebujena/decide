@@ -39,13 +39,13 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sites',
-
     'corsheaders',
     'django_filters',
     'rest_framework',
     'rest_framework.authtoken',
     'rest_framework_swagger',
     'gateway',
+    'import_export',
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
@@ -55,7 +55,7 @@ INSTALLED_APPS = [
     'allauth.socialaccount.providers.linkedin_oauth2',
     'allauth.socialaccount.providers.auth0',
     'allauth.socialaccount.providers.facebook',
-    'dashboard'
+
 
 ]
 
@@ -108,14 +108,17 @@ MODULES = [
     'base',
     'booth',
     'census',
-    'mixnet'
+    'mixnet',
     'postproc',
     'store',
     'visualizer',
     'voting',
+    'dashboard',
 ]
 
 BASEURL = 'http://localhost:8000'
+
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

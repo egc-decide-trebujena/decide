@@ -48,7 +48,7 @@
                 </table>
                     <!-- TRADUCCION -->
 
-            <h3>Porcentages de votaciones según censo</h3>
+            <h3>Porcentajes de votaciones según censo</h3>
              <table id= "vot-census" class="table table-bordered table-striped">
                     <thead>
                         <tr>
@@ -57,14 +57,14 @@
                             <th>Id de votacion</th>
                                     <!-- TRADUCCION -->
 
-                            <th>Porcentage del censo</th>
+                            <th>Porcentaje del censo</th>
 
 
                         </tr>
                     </thead>
                     <tbody>
 
-                        <tr v-for="por in porcentages">
+                        <tr v-for="por in percentages">
                             <th v-bind:id="[[por.voting]]" >[[por.voting]]</th>
                             <th>[[por.percen*100]]% </th>
 
@@ -123,14 +123,14 @@
 
     <script>
         var users = {{users|safe}};
-        var porcentages={{porcentages|safe}};
+        var percentages={{percentages|safe}};
         var new_votes={{new_votes|safe}};
         var app = new Vue({
             delimiters: ['[[', ']]'],
             el: '#app-dashboard',
             data: {
                 users: users,
-                porcentages:porcentages,
+                percentages:percentages,
                 new_votes:new_votes
             }
         })

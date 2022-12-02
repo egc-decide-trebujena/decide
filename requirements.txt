@@ -11,6 +11,9 @@ django-rest-swagger==2.2.0
 coverage==4.5.2
 django-nose==1.4.6
 jsonnet==0.12.1
+pandas==1.5.1
+django-import-export==2.1
+XlsxWriter==3.0.3
 python-telegram-bot
 weasyprint==57.1
 numpy
