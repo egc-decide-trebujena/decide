@@ -1,6 +1,6 @@
 from django.db.utils import IntegrityError
 from django.core.exceptions import ObjectDoesNotExist
-from django.shortcuts import render
+from django.shortcuts import render, redirect, get_object_or_404
 from rest_framework import generics
 from django.shortcuts import render
 from django.contrib.auth.models import User
@@ -17,6 +17,8 @@ from base.perms import UserIsStaff
 from .models import Census,CensusGroup
 from voting.models import Voting
 from .forms import CensusForm
+from django.views.decorators.http import require_http_methods
+
 
 from .serializers import CensusGroupSerializer,CensusSerializer
 
@@ -28,6 +30,9 @@ import math
 from django.http import HttpResponse
 import csv
 from django.contrib import messages
+from rest_framework.decorators import api_view, renderer_classes
+from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
+
 
 
 class CensusCreate(generics.ListCreateAPIView):
@@ -103,23 +108,53 @@ class CensusDetail(generics.RetrieveDestroyAPIView):
 
 
 def census_creation(request):
-    voter_id= [x[0] for x in User.objects.all().values_list('username')]
-    voting_id=  [x[0] for x in Voting.objects.all().values_list('id')]
-    group_id = [x[0] for x in CensusGroup.objects.all().values_list('name')]
+    voters= User.objects.all()
+    votings=  Voting.objects.all()
+    groups = CensusGroup.objects.all()
     if request.method=='POST':
         form=CensusForm(request.POST)
         if form.is_valid():
+            
             cd=form.cleaned_data
             voting_id=cd['voting_id']
             voter_id=cd['voter_id']
-            group_id=cd['group_id']
-            census=Census(voting_id=voting_id,voter_id=voter_id,group_id=group_id)
+            group=cd['group_id']
+            print(group)
+            group_search=CensusGroup.objects.get_or_create(name=str(group))
+            group_result=get_object_or_404(CensusGroup,name=str(group_search[0]))
+            
+            census=Census(voting_id=voting_id,voter_id=voter_id,group_id=group_result.id)
             census.save()
+            return render(request,"new.html",{'msg':True})
         else:
-            return Response("Error",status=ST_400)
+            return render(request,"new.html",{'error':form.errors.as_data()})
     else:
-        form=CensusForm()
-    return render(request,"new.html",{'form':form,'voter_id':voter_id,'voting_id':voting_id,'group_id':group_id})
+        return render(request,"new.html",{'error':"error"})
+    return render(request,"new.html",{'form':form,'voters':voters,'votings':votings,'groups':groups})
+
+
+def census_creation2(request):
+    form=CensusForm(request.POST)
+    if request.method=='POST':
+        form=CensusForm(request.POST)
+        if form.is_valid():
+            
+            cd=form.cleaned_data
+            voting_id=cd['voting_id']
+            voter_id=cd['voter_id']
+            group=cd['group_id']
+            group_search=CensusGroup.objects.get_or_create(name=str(group))
+            group_result=get_object_or_404(CensusGroup,name=str(group_search[0]))
+            
+            census=Census(voting_id=voting_id,voter_id=voter_id,group_id=group_result.id)
+            census.save()
+            return render(request,"new2.html",{'msg':True})
+        else:
+            return render(request,"new2.html",{'error':form.errors.as_data()})
+    else:
+        return render(request,"new2.html",{'error':"error"})
+    return render(request,"new2.html",{'form':form,'voters':voters,'votings':votings,'groups':groups})  
+
 class CensusGroupCreate(generics.ListCreateAPIView):
     serializer_class = CensusGroupSerializer
     permission_classes = (IsAdminUser,)

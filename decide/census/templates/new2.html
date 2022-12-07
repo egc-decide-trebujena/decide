@@ -32,34 +32,9 @@
                
                 <div class="container bg-gray w-35 p-4 mt-4 rounded m-0">
 
-                    <form action="{% url 'census:census_creation' %}" method="post">
+                    <form action="{% url 'census:census_creation2' %}" method="post">
                         {% csrf_token %}
-                        <label for="voting_id">Elige votación</label>
-                        
-                        <select required class="form-select" id="voting_id" name="voting_id">
-                            <option value=""></option>
-                            {% for voting in votings %}
-                                <option value="{{voting.id}}">{{voting.id}}</option>
-                            {% endfor %}
-                        </select>
-                        <br>
-                        <label for="voter_id">Elige votante</label>
-                        <select required class="form-select" id="voter_id" name="voter_id">
-                            <option value=""></option>
-                            {% for voter in voters %}
-                                <option value="{{voter.id}}">{{voter.username}}</option>
-                            {% endfor %}
-                        </select>
-                        <br>
-                        <label for="group_id">Elige grupo</label>
-                        <input class="form-control" name="group_id" list="datalistOptions" id="exampleDataList" placeholder="Escribe para buscar">
-                        <datalist id="datalistOptions group_id" name="group_id">
-                                
-                            {% for o in groups %}
-                                
-                                <option value="{{o.id}}">{{o.name}}</option>
-                            {% endfor %}
-                        </datalist>
+                        {{form}}
                         
                         <input type="submit" value="Crear censo" variant="primary" class="btn w-100 mt-4 h4 btn-primary">
                     </form>
@@ -195,7 +170,7 @@
                         voter: this.user.id,
                         token: this.token
                     }
-                    this.postData("{% url 'census:census_creation' %}", data)
+                    this.postData("{% url 'census:census_creation2' %}", data)
                         .then(data => {
                             this.showAlert("success", '{% trans "Conglatulations. Your vote has been sent" %}');
                         })
