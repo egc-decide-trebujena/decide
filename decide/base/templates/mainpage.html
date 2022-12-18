@@ -25,7 +25,7 @@
                         <b-card header="Busca tu votación">
                             <b-list-group class="voting-list my-3">
                                 {% for voting in voting_votings %}
-                                    <b-list-group-item href="/booth/{{ voting.pk }}">{{ voting.name }}</b-list-group-item>
+                                    <b-list-group-item id="voting-{{voting.pk}}" href="/booth/{{ voting.pk }}">{{ voting.name }}</b-list-group-item>
                                 {% endfor %}
                             </b-list-group>
                         </b-card>
