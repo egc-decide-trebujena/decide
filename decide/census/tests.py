@@ -19,7 +19,7 @@ import csv
 import json
 import xlsxwriter
 
-class CensusNewPageTestCase(StaticLiveServerTestCase):
+class CensusNewPositiveTestCase(StaticLiveServerTestCase):
     def setUp(self):
         self.base = BaseTestCase()
         self.base.setUp()
@@ -48,7 +48,7 @@ class CensusNewPageTestCase(StaticLiveServerTestCase):
         User.objects.create_superuser('Enriqu', 'myemail@test.com', password)
 
         options = webdriver.ChromeOptions()
-        options.headless = False
+        options.headless = True
         self.driver = webdriver.Chrome(options=options)
 
     def tearDown(self):
@@ -64,7 +64,6 @@ class CensusNewPageTestCase(StaticLiveServerTestCase):
         self.driver.find_element(By.ID, "id_username").send_keys('Enriqu')
         self.driver.find_element(By.ID, "id_password").send_keys('qwerty',Keys.ENTER)
         self.driver.get(f'{self.live_server_url}/census/new')
-        time.sleep(15)
         self.driver.find_element(By.ID, "btn").click()
         self.assertTrue(len(self.driver.find_elements(By.ID,'success'))==1)
 
