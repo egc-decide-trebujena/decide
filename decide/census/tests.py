@@ -3,11 +3,13 @@ from django.contrib.auth.models import User
 from .models import Census,CensusGroup
 from base.tests import BaseTestCase
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
+from selenium.webdriver.common.keys import Keys
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 
 from base.tests import BaseTestCase
+import time
 import os
 import csv
 import json
@@ -25,6 +27,7 @@ class CensusTestCase(BaseTestCase):
     def tearDown(self):
         super().tearDown()
         self.census = None
+        self.user = None
 
     def test_check_vote_permissions(self):
         response = self.client.get('/census/api/{}/?voter_id={}'.format(1, 2), format='json')
@@ -46,10 +49,10 @@ class CensusTestCase(BaseTestCase):
         self.login()
         response = self.client.get('/census/api?voting_id={}'.format(1), format='json')
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json(), {'voters': [1]})
+        self.assertEqual(response.json(), {'Current_Censuses': [[1, 1, None]]})
 
     def test_add_new_voters_conflict(self):
-        data = {'voting_id': 1, 'voters': [1]}
+        data = {'voting_id': 1, 'voter_id': 1, 'group':{'name':''}}
         response = self.client.post('/census/api', data, format='json')
         self.assertEqual(response.status_code, 401)
 
@@ -62,33 +65,36 @@ class CensusTestCase(BaseTestCase):
         self.assertEqual(response.status_code, 409)
 
     def test_add_new_voters(self):
-        data = {'voting_id': 2, 'voters': [1,2,3,4]}
-        response = self.client.post('/census/api', data, format='json')
-        self.assertEqual(response.status_code, 401)
+        old_census = Census.objects.count()
+        voters = [2,3,4,5]
+        for v in voters:
+            data = {'voting_id': 1, 'voter_id': v, 'group':{'name':''}}
+            response = self.client.post('/census/api', data, format='json')
+            self.assertEqual(response.status_code, 401)
 
-        self.login(user='noadmin')
-        response = self.client.post('/census/api', data, format='json')
-        self.assertEqual(response.status_code, 403)
+            self.login(user='noadmin')
+            response = self.client.post('/census/api', data, format='json')
+            self.assertEqual(response.status_code, 403)
 
-        self.login()
-        response = self.client.post('/census/api', data, format='json')
-        self.assertEqual(response.status_code, 201)
-        self.assertEqual(len(data.get('voters')), Census.objects.count() - 1)
+            self.login()
+            response = self.client.post('/census/api', data, format='json')
+            self.assertEqual(response.status_code, 201)
+            self.logout()
+        self.assertEqual(Census.objects.count(), old_census + len(voters))
 
     def test_destroy_voter(self):
-        data = {'voters': [1]}
-
         self.login()
-        response = self.client.delete('/census/api/{}/'.format(1), data, format='json')
+        response = self.client.delete('/census/api/{}/?voter_id={}'.format(1,1), format='json')
         self.assertEqual(response.status_code, 204)
         self.assertEqual(0, Census.objects.count())
     
     def test_add_new_voters_with_group(self):
-        data = {'voting_id': 1,'voters':[2],'group':{'name':'Test Group 1'}}
+        old_census = Census.objects.count()
+        data = {'voting_id': 1,'voter_id':2,'group':{'name':'Test Group 1'}}
         self.login()
         response = self.client.post('/census/api', data, format='json')
         self.assertEqual(response.status_code, 201)
-        self.assertEqual(len(data.get('voters')), Census.objects.count() - 1)
+        self.assertEqual(Census.objects.count(), old_census + 1)
 
 class CensusGroupTestCase(BaseTestCase):
     def setUp(self):
@@ -98,6 +104,7 @@ class CensusGroupTestCase(BaseTestCase):
 
     def tearDown(self):
         super().tearDown()
+        self.census = None
         self.census_group = None
 
     def test_group_creation(self):
@@ -143,8 +150,6 @@ class SeleniumImportExcelTestCase(StaticLiveServerTestCase):
         self.driver.find_element(By.ID, "id_password").send_keys('qwerty')
         self.driver.find_element(By.ID, "id-signin-btn").click()
 
-
-
         super().setUp()            
             
     def tearDown(self):           
@@ -152,8 +157,8 @@ class SeleniumImportExcelTestCase(StaticLiveServerTestCase):
         self.driver.quit()
         self.base.tearDown()
         self.census_group = None
+        self.census = None
         os.remove("census/test_import.xlsx")
-
 
     def create_excel_file(self,expenses):
         test = xlsxwriter.Workbook('census/test_import.xlsx')
@@ -163,8 +168,6 @@ class SeleniumImportExcelTestCase(StaticLiveServerTestCase):
             for j in range(3):
                 testfile.write(i, j, expenses[i][j])
         test.close()
-
-
 
     def test_import_excel_positive_no_group(self):
         expenses = (['voting_id', 'voter_id','group'],
@@ -179,11 +182,10 @@ class SeleniumImportExcelTestCase(StaticLiveServerTestCase):
 
         uploadElement.send_keys(screenshotpath)
 
-        self.driver.find_element(By.CSS_SELECTOR, ".btn").click()
+        self.driver.find_element(By.ID, "id-submit-import").click()
         self.assertTrue(len(self.driver.find_elements(By.CLASS_NAME,'alert-success'))==1)
         self.assertEqual(1,Census.objects.count())
        
-
     def test_import_excel_positive_with_group(self):
         self.census_group = CensusGroup(name='Test Group 1')
         self.census_group.save()
@@ -200,11 +202,10 @@ class SeleniumImportExcelTestCase(StaticLiveServerTestCase):
 
         uploadElement.send_keys(screenshotpath)
 
-        self.driver.find_element(By.CSS_SELECTOR, ".btn").click()
+        self.driver.find_element(By.ID, "id-submit-import").click()
         self.assertTrue(len(self.driver.find_elements(By.CLASS_NAME,'alert-success'))==1)
         self.assertEqual(1,Census.objects.count())
         
-
     def test_import_excel_negative_with_group(self):
         expenses = (['voting_id', 'voter_id','group'],
                     [1,1,1])
@@ -218,7 +219,7 @@ class SeleniumImportExcelTestCase(StaticLiveServerTestCase):
 
         uploadElement.send_keys(screenshotpath)
 
-        self.driver.find_element(By.CSS_SELECTOR, ".btn").click()
+        self.driver.find_element(By.ID, "id-submit-import").click()
         self.assertTrue(len(self.driver.find_elements(By.CLASS_NAME,'alert-danger'))==1)
         self.assertEqual(0,Census.objects.count())
         
@@ -237,11 +238,10 @@ class SeleniumImportExcelTestCase(StaticLiveServerTestCase):
 
         uploadElement.send_keys(screenshotpath)
 
-        self.driver.find_element(By.CSS_SELECTOR, ".btn").click()
+        self.driver.find_element(By.ID, "id-submit-import").click()
         self.assertTrue(len(self.driver.find_elements(By.CLASS_NAME,'alert-danger'))==1)
         self.assertEqual(0,Census.objects.count())
         
-
     def test_import_excel_negative_integrity_error(self):
         expenses = (['voting_id', 'voter_id','group'],
                     [1,1,''],
@@ -256,7 +256,7 @@ class SeleniumImportExcelTestCase(StaticLiveServerTestCase):
 
         uploadElement.send_keys(screenshotpath)
 
-        self.driver.find_element(By.CSS_SELECTOR, ".btn").click()
+        self.driver.find_element(By.ID, "id-submit-import").click()
         self.assertTrue(len(self.driver.find_elements(By.CLASS_NAME,'alert-danger'))==1)
         self.assertEqual(0,Census.objects.count())
 
@@ -290,8 +290,8 @@ class SeleniumImportJSONTestCase(StaticLiveServerTestCase):
         self.driver.quit()
         self.base.tearDown()
         self.census_group = None
+        self.census = None
         os.remove("census/test_import_census_json.json")
-    
 
     def create_json_file(self,expenses):
         
@@ -299,9 +299,7 @@ class SeleniumImportJSONTestCase(StaticLiveServerTestCase):
         jsonFile = open("census/test_import_census_json.json", "w")
         jsonFile.write(datos)
         jsonFile.close()
-
-            
-            
+       
     def test_import_json_positive(self):
 
         expenses = [{"voting_id":1, "voter_id":1, "group": ""}]
@@ -316,7 +314,7 @@ class SeleniumImportJSONTestCase(StaticLiveServerTestCase):
 
         uploadElement.send_keys(screenshotpath)
 
-        self.driver.find_element(By.CSS_SELECTOR, ".btn").click()
+        self.driver.find_element(By.ID, "id-submit-import").click()
         self.assertTrue(len(self.driver.find_elements(By.CLASS_NAME,'alert-success'))==1)
         self.assertEqual(1,Census.objects.count())
 
@@ -337,7 +335,7 @@ class SeleniumImportJSONTestCase(StaticLiveServerTestCase):
 
         uploadElement.send_keys(screenshotpath)
 
-        self.driver.find_element(By.CSS_SELECTOR, ".btn").click()
+        self.driver.find_element(By.ID, "id-submit-import").click()
         self.assertTrue(len(self.driver.find_elements(By.CLASS_NAME,'alert-success'))==1)
         self.assertEqual(2,Census.objects.count())
 
@@ -355,7 +353,7 @@ class SeleniumImportJSONTestCase(StaticLiveServerTestCase):
 
         uploadElement.send_keys(screenshotpath)
 
-        self.driver.find_element(By.CSS_SELECTOR, ".btn").click()
+        self.driver.find_element(By.ID, "id-submit-import").click()
         self.assertTrue(len(self.driver.find_elements(By.CLASS_NAME,'alert-danger'))==1)
         self.assertEqual(0,Census.objects.count())
         
@@ -373,11 +371,10 @@ class SeleniumImportJSONTestCase(StaticLiveServerTestCase):
 
         uploadElement.send_keys(screenshotpath)
 
-        self.driver.find_element(By.CSS_SELECTOR, ".btn").click()
+        self.driver.find_element(By.ID, "id-submit-import").click()
         self.assertTrue(len(self.driver.find_elements(By.CLASS_NAME,'alert-danger'))==1)
         self.assertEqual(0,Census.objects.count())
         
-
     def test_import_json_negative_integrity_error(self):
         
         expenses = [{"voting_id":1, "voter_id":1, "group": ""}, {"voting_id":1, "voter_id":1, "group": ""}]
@@ -392,7 +389,7 @@ class SeleniumImportJSONTestCase(StaticLiveServerTestCase):
 
         uploadElement.send_keys(screenshotpath)
 
-        self.driver.find_element(By.CSS_SELECTOR, ".btn").click()
+        self.driver.find_element(By.ID, "id-submit-import").click()
         self.assertTrue(len(self.driver.find_elements(By.CLASS_NAME,'alert-danger'))==1)
         self.assertEqual(0,Census.objects.count())
 
@@ -425,6 +422,7 @@ class SeleniumImportCSVTestCase(StaticLiveServerTestCase):
         super().tearDown()
         self.driver.quit()
         self.base.tearDown()
+        self.census = None
         self.census_group = None
         os.remove("census/test_import_census_csv.csv")
     
@@ -442,8 +440,7 @@ class SeleniumImportCSVTestCase(StaticLiveServerTestCase):
                 writer.writerow(expenses)
             elif len(expenses) > 1:
                 writer.writerows(expenses)
-            
-            
+                
     def test_import_csv_positive(self):
 
         expenses = [
@@ -461,7 +458,7 @@ class SeleniumImportCSVTestCase(StaticLiveServerTestCase):
 
         uploadElement.send_keys(screenshotpath)
 
-        self.driver.find_element(By.CSS_SELECTOR, ".btn").click()
+        self.driver.find_element(By.ID, "id-submit-import").click()
         self.assertTrue(len(self.driver.find_elements(By.CLASS_NAME,'alert-success'))==1)
         self.assertEqual(2,Census.objects.count())
 
@@ -485,7 +482,7 @@ class SeleniumImportCSVTestCase(StaticLiveServerTestCase):
 
         uploadElement.send_keys(screenshotpath)
 
-        self.driver.find_element(By.CSS_SELECTOR, ".btn").click()
+        self.driver.find_element(By.ID, "id-submit-import").click()
         self.assertTrue(len(self.driver.find_elements(By.CLASS_NAME,'alert-success'))==1)
         self.assertEqual(2,Census.objects.count())
 
@@ -505,7 +502,7 @@ class SeleniumImportCSVTestCase(StaticLiveServerTestCase):
 
         uploadElement.send_keys(screenshotpath)
 
-        self.driver.find_element(By.CSS_SELECTOR, ".btn").click()
+        self.driver.find_element(By.ID, "id-submit-import").click()
         self.assertTrue(len(self.driver.find_elements(By.CLASS_NAME,'alert-danger'))==1)
         self.assertEqual(0,Census.objects.count())
         
@@ -526,11 +523,10 @@ class SeleniumImportCSVTestCase(StaticLiveServerTestCase):
 
         uploadElement.send_keys(screenshotpath)
 
-        self.driver.find_element(By.CSS_SELECTOR, ".btn").click()
+        self.driver.find_element(By.ID, "id-submit-import").click()
         self.assertTrue(len(self.driver.find_elements(By.CLASS_NAME,'alert-danger'))==1)
         self.assertEqual(0,Census.objects.count())
         
-
     def test_import_csv_negative_integrity_error(self):
         
         expenses = [
@@ -548,29 +544,37 @@ class SeleniumImportCSVTestCase(StaticLiveServerTestCase):
 
         uploadElement.send_keys(screenshotpath)
 
-        self.driver.find_element(By.CSS_SELECTOR, ".btn").click()
+        self.driver.find_element(By.ID, "id-submit-import").click()
         self.assertTrue(len(self.driver.find_elements(By.CLASS_NAME,'alert-danger'))==1)
         self.assertEqual(0,Census.objects.count())
-
 
 class CensusReuseTestCase(BaseTestCase):
     def setUp(self):
         super().setUp()
+
+    def tearDown(self):
+        super().tearDown()
+        self.census = None
+    
+    def test_census_reuse_fail(self):
+        self.login()
+
+        staff = User.objects.get(username="admin").is_staff
+
+        data = {'voting_id':'x','new_voting':'y','staff':staff}
+        response = self.client.post('/census/reuse',data=data)
+        self.assertEqual(len(response.context.get('errors')),1)
     
     def test_census_reuse(self):
         self.login()
 
-        data = {'voting_id':'x','new_voting':'y'}
-        response = self.client.post('/census/reuse',data=data)
-        self.assertEqual(response.status_code, 400)
+        staff = User.objects.get(username="admin").is_staff
 
-        data = {'voting_id':1,'new_voting':2}
+        data = {'voting_id':1,'new_voting':2,'staff':staff}
         response = self.client.post('/census/reuse',data=data)
-        self.assertEqual(response.status_code, 302)
-        
+        self.assertRedirects(response,'/census', status_code=302, target_status_code=301)
 
 class CensusExportTestCase(TestCase):
-
     def setUp(self):
         super().setUp()
 
@@ -663,7 +667,6 @@ class CensusGroupModelTestCase(BaseTestCase):
     def test_get_group(self):
         self.assertEquals(CensusGroup.objects.get(pk=self.census_group.pk).name, 'Trebujena')
 
-    
     def test_create_group(self):
         numGroup = CensusGroup.objects.count()
         group = CensusGroup(name='Sevilla')
@@ -679,9 +682,6 @@ class CensusGroupModelTestCase(BaseTestCase):
         self.census_group.name = 'Sevilla'
         self.census_group.save()
         self.assertEquals(CensusGroup.objects.get(pk=self.census_group.pk).name, 'Sevilla')
-
-
-
 
 class CensusGroupingModelTestCase(BaseTestCase):
 
@@ -718,3 +718,53 @@ class CensusGroupingModelTestCase(BaseTestCase):
         self.census_group.name = 'Marchena'
         self.census_group.save()
         self.assertEquals(Census.objects.get(pk=self.census2.pk).group.name, 'Marchena')
+
+class CensusPageTestCase(StaticLiveServerTestCase):
+    def setUp(self):
+        self.base = BaseTestCase()
+        self.base.setUp()
+
+        u = User(username='Jaime', is_staff=True)
+        u.set_password('qwerty')
+        u.save()
+
+        v_id = User.objects.get(username="Jaime").pk
+
+        census = Census(voting_id=1, voter_id=v_id)
+        census.save()
+
+        census2 = Census(voting_id=2, voter_id=v_id)
+        census2.save()
+
+        options = webdriver.ChromeOptions()
+        options.headless = True
+        self.driver = webdriver.Chrome(options=options)
+
+    def tearDown(self):
+        super().tearDown()
+        self.driver.quit()
+        self.base.tearDown()
+        self.census = None
+        self.user = None
+
+    def test_census_reuse(self):
+        self.driver.get(f'{self.live_server_url}/admin')
+        self.driver.find_element(By.ID, "id_username").send_keys('Jaime')
+        self.driver.find_element(By.ID, "id_password").send_keys('qwerty',Keys.ENTER)
+
+        self.driver.get(f'{self.live_server_url}/census/reuse')
+        self.assertTrue(len(self.driver.find_elements(By.ID,'voting_id')) == 1)
+        self.assertTrue(len(self.driver.find_elements(By.ID,'new_voting')) == 1)
+        
+
+    def test_census_mainpage(self):
+        self.driver.get(f'{self.live_server_url}/admin')
+        self.driver.find_element(By.ID, "id_username").send_keys('Jaime')
+        self.driver.find_element(By.ID, "id_password").send_keys('qwerty',Keys.ENTER)
+
+        time.sleep(5)
+        self.driver.get(f'{self.live_server_url}/census')
+        time.sleep(5)
+        self.assertTrue(len(self.driver.find_elements(By.ID,'tabla-votacion'))==1)
+        self.assertTrue(len(self.driver.find_elements(By.ID,'1-Jaime')) == 1)
+
