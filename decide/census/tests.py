@@ -649,3 +649,42 @@ class CensusExportTestCase(TestCase):
                 self.assertEqual(int(values[i]), census_values[0][i])
             else:
                 self.assertEqual(None, census_values[0][i])
+
+class CensusGroupingModelTestCase(BaseTestCase):
+
+    def setUp(self):
+        super().setUp()
+        self.census = Census(voting_id=1, voter_id=1)
+        self.census.save()
+        self.census_group = CensusGroup(name='Trebujena')
+        self.census_group.save()
+        self.census2 = Census(voting_id=1, voter_id=2, group = self.census_group)
+        self.census2.save()
+
+    def tearDown(self):
+        super().tearDown()
+        self.census = None
+        self.census_group = None
+        self.census2 = None
+    
+    def test_census_add_group(self):
+        self.assertEquals(self.census.group, None)
+        self.census.group = self.census_group
+        self.census.save()
+        self.assertEquals(Census.objects.get(pk=self.census.pk).group.name, 'Trebujena')
+    
+    def test_census_group_after_group_deletion(self):
+        self.assertEquals(Census.objects.get(pk=self.census2.pk).group.name, 'Trebujena')
+        self.census_group.delete()
+        self.assertEquals(Census.objects.get(pk=self.census2.pk).group, None)
+    
+    def test_census_delete_group(self):
+        self.assertEquals(Census.objects.get(pk=self.census2.pk).group, self.census_group)
+        self.census2.group.delete()
+        self.assertNotEquals(Census.objects.get(pk=self.census2.pk).group, self.census_group)
+    
+    def test_census_group_after_group_update(self):
+        self.assertEquals(Census.objects.get(pk=self.census2.pk).group.name, 'Trebujena')
+        self.census_group.name = 'Marchena'
+        self.census_group.save()
+        self.assertEquals(Census.objects.get(pk=self.census2.pk).group.name, 'Marchena')
