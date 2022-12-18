@@ -650,6 +650,39 @@ class CensusExportTestCase(TestCase):
             else:
                 self.assertEqual(None, census_values[0][i])
 
+class CensusGroupModelTestCase(BaseTestCase):
+    def setUp(self):
+        super().setUp()
+        self.census_group = CensusGroup(name='Trebujena')
+        self.census_group.save()
+
+    def tearDown(self):
+        super().tearDown()
+        self.census_group = None
+    
+    def test_get_group(self):
+        self.assertEquals(CensusGroup.objects.get(pk=self.census_group.pk).name, 'Trebujena')
+
+    
+    def test_create_group(self):
+        numGroup = CensusGroup.objects.count()
+        group = CensusGroup(name='Sevilla')
+        group.save()
+        self.assertEquals(CensusGroup.objects.count(),numGroup+1)
+    
+    def test_delete_group(self):
+        numGroup = CensusGroup.objects.count()
+        self.census_group.delete()
+        self.assertEquals(CensusGroup.objects.count(),numGroup-1)
+    
+    def test_update_group(self):
+        self.census_group.name = 'Sevilla'
+        self.census_group.save()
+        self.assertEquals(CensusGroup.objects.get(pk=self.census_group.pk).name, 'Sevilla')
+
+
+
+
 class CensusGroupingModelTestCase(BaseTestCase):
 
     def setUp(self):
@@ -668,7 +701,6 @@ class CensusGroupingModelTestCase(BaseTestCase):
         self.census2 = None
     
     def test_census_add_group(self):
-        self.assertEquals(self.census.group, None)
         self.census.group = self.census_group
         self.census.save()
         self.assertEquals(Census.objects.get(pk=self.census.pk).group.name, 'Trebujena')
@@ -679,12 +711,10 @@ class CensusGroupingModelTestCase(BaseTestCase):
         self.assertEquals(Census.objects.get(pk=self.census2.pk).group, None)
     
     def test_census_delete_group(self):
-        self.assertEquals(Census.objects.get(pk=self.census2.pk).group, self.census_group)
         self.census2.group.delete()
         self.assertNotEquals(Census.objects.get(pk=self.census2.pk).group, self.census_group)
     
     def test_census_group_after_group_update(self):
-        self.assertEquals(Census.objects.get(pk=self.census2.pk).group.name, 'Trebujena')
         self.census_group.name = 'Marchena'
         self.census_group.save()
         self.assertEquals(Census.objects.get(pk=self.census2.pk).group.name, 'Marchena')
