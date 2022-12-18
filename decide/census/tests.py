@@ -19,7 +19,7 @@ import csv
 import json
 import xlsxwriter
 
-class CensusNewPageTestCase(StaticLiveServerTestCase):
+class CensusNewpOSITIVETestCase(StaticLiveServerTestCase):
     def setUp(self):
         self.base = BaseTestCase()
         self.base.setUp()
@@ -45,7 +45,7 @@ class CensusNewPageTestCase(StaticLiveServerTestCase):
         v.save()
         password = 'qwerty'
 
-        u=User.objects.create_superuser('Enriqu', 'myemail@test.com', password)
+        User.objects.create_superuser('Enriqu', 'myemail@test.com', password)
 
         options = webdriver.ChromeOptions()
         options.headless = False
